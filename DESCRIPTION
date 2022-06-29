@@ -17,4 +17,4 @@ Imports:
     ggplot2 (>= 3.3.6),
     rstan (>= 2.21.5)
 Depends: 
-    R (>= 4.0.4)
+    R (>= 4.0.0)
