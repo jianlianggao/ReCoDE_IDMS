@@ -36,4 +36,4 @@ Upon completion of this tutorial, students will be able to:
 
 The project is split into 2 parts, with part 2 building on the model and fitting process introduced in part 1. Within each part, the tutorial will design an infectious disease model, code it up in Stan, fit the model to simulated and real data and run model diagnostics and plot model outputs. 
 
-### Try sample code with [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jianlianggao/ReCoDE_IDMS/feature_blinder?urlpath=rstudio)
+### Try sample code with [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jianlianggao/ReCoDE_IDMS/feature1?urlpath=rstudio)
