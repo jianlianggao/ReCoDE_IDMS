@@ -17,7 +17,7 @@ In part 1, you will find 2 RMD files:
  
 Broadly, each one of these activities is achieved by one or more functions, which mostly takes as input the output of the function before. The Rmd. file is also designed to be interactive, with questions and activities along the way.
 
-- ***part1_Solutions.Rmd:*** is as above, but with the solutions. [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jianlianggao/ReCoDE_IDMS/part_1/feat.RMD-files?urlpath=rstudio)
+- ***part1_Solutions.Rmd:*** is as above, but with the solutions. 
 
 
 
