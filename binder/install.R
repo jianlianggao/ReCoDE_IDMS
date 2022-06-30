@@ -12,4 +12,4 @@ install.packages("https://cran.r-project.org/src/contrib/Archive/RcppEigen/RcppE
 install.packages("https://cran.r-project.org/src/contrib/Archive/BH/BH_1.75.0-0.tar.gz", repos = NULL, type = "source")
 install.packages("https://cran.r-project.org/src/contrib/Archive/RcppParallel/RcppParallel_5.1.4.tar.gz", repos = NULL, type = "source")
 install.packages("StanHeaders", version = "2.26.13", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
-install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+
