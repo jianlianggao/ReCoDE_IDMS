@@ -400,6 +400,7 @@ stan_fit_EU2 = run_stan_models(
 
 **Let's check the diagnostics now and see if we are able to improve the accuracy. **
 
+**Requires 7GB RAM at peak memory usage** So, using Docker with 8GB RAM/4GB Swap/4 CPUs is ok.
 ```{r}
 EU2_diag = diagnose_stan_fit(stan_fit_EU2, pars = c("beta", "rho", "R_0"))
 

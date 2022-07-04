@@ -34,7 +34,7 @@ run_stan_models = function(
   library(rstan)
   rstan_options(auto_write = TRUE)           
   options(mc.cores = parallel::detectCores())
-  
+  #options(mc.cores = 1) # force to use 1 core in container 
   
   if(length(seed_values) != n_chains){
     stop("seed values do not equal number of chain")

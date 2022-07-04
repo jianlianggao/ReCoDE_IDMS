@@ -200,6 +200,7 @@ stan_fit_EU3_obs = run_stan_models(
 )
 ``` 
 
+**The following code chunk requires peak memory slightly more than 27GB**
 ```{r}
 m2_diag = diagnose_stan_fit(
   stan_fit_EU3_obs, #
