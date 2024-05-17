@@ -93,3 +93,4 @@ for (t in time_seed_omicron:n_ts) lambda_fit[(t-time_seed_omicron+1)] = lambda[t
   real R_0 = ((1-rho) * beta ) / gamma ; 
 
   }
+  

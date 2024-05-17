@@ -19,7 +19,7 @@ RUN R -e "install.packages(c('highr', 'devtools', 'stringr','yaml' ))" && \
     R -e "install.packages('rstan', dependencies = TRUE)" && \
     R -e "install.packages('deSolve', dependencies = TRUE)" && \
     R -e "install.packages('V8', dependencies = TRUE)" && \
-    R -e "install.packages(c('dplyr','knitr','bayesplot'))" 
+    R -e "install.packages(c('dplyr','knitr','bayesplot','tidyr'))" 
 
 ADD * ./
 

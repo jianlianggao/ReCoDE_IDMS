@@ -150,3 +150,4 @@ for (t in time_seed_omicron:n_ts) lambda_fit[(t-time_seed_omicron+1)] = lambda_d
 
 
   }
+  

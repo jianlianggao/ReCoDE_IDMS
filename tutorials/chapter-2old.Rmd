@@ -1,28 +1,50 @@
 ---
-title: "Chapter 2: fitting a single variant model in Stan"
-output: 
+title: 'Chapter 2: fitting a single variant model in Stan'
+output:
   html_document:
-    keep_md: true
-    toc: true
-    toc_float: true
-    toc_collapse: true
-
+    keep_md: yes
+    toc: yes
+    toc_float: yes
+    toc_collapse: yes
+  pdf_document:
+    toc: yes
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(eval = T)
+knitr::opts_chunk$set(cache = T)
+dotR <- file.path(Sys.getenv("HOME"), ".R")
+if (!file.exists(dotR)) dir.create(dotR)
+M <- file.path(dotR, "Makevars")
+if (!file.exists(M)) file.create(M)
+arch <- ifelse(R.version$arch == "aarch64", "arm64", "x86_64")
+cat(paste("\nCXX14FLAGS += -O3 -mtune=native -arch", arch, "-ftemplate-depth-256"),
+    file = M, sep = "\n", append = FALSE)
 
+# dotR <- file.path(Sys.getenv("HOME"), ".R")
+# if (!file.exists(dotR)) dir.create(dotR)
+# M <- file.path(dotR, "Makevars")
+# if (!file.exists(M)) file.create(M)
+# cat("\nCXX14FLAGS=-O3 -march=corei7 -mtune=corei7 -fPIC",
+#     "CXX14=g++", # or clang++ but you may need a version postfix
+#     file = M, sep = "\n", append = F)
+# Sys.setenv(DOWNLOAD_STATIC_LIBV8 = 1)
+
+
+```
 
 In this chapter, we are going to fit the single variant model designed in chapter 1, using Stan. 
 
 First, we need to load some packages. We also need to source the functions needed to run this script, found in the *R* folder. Finally, we need to compile the Stan models, found in the *models* folder. 
 
-
-```r
+```{r message=FALSE, warning=FALSE}
 library(dplyr)
 library(ggplot2)
 library(rstan)
 library(bayesplot)
-rstan_options(auto_write = TRUE)           
-options(mc.cores = parallel::detectCores())
+# rstan_options(auto_write = TRUE)           
+# options(mc.cores = parallel::detectCores())
   
 # Functions
 source("R/simulate_data.R")
@@ -52,8 +74,7 @@ First, lets set the start and end date over which to fit the model, converted in
 
 As mentioned, we want to seed Omicron 1 month before we fit to data, so we can define that here too. 
 
-
-```r
+```{r}
 date_seed_omicron =  as.Date.character("01-09-2021", format = "%d-%m-%Y") 
 end_date = as.Date.character("23-02-2022", format = "%d-%m-%Y")
 all_dates = seq.Date(from = date_seed_omicron, to = end_date ,  by = "days") # model times
@@ -65,8 +86,7 @@ As we are simulating data, we next need to define both the fixed and estimated p
 
 We are assuming an $R_0$ of 5 and and that $\rho$ is 0.2.
 
-
-```r
+```{r}
 R0 = 5                            # reproduction number 
 immunity = 0.562                  # seroprevalence 
 n_pop = 15810388                  # population
@@ -84,8 +104,7 @@ Next, we simulate our transmission data by solving a set of ODEs using the funct
 The function requires that we provide the % of immunity in the population, the 
 initial number of infected individuals, the reporting probability, the transmission rate and the time steps at which to solve the model. We can additionally set the population and recovery and latent rates, if we don't want to use the predefined values. The function will return a data frame of solutions to the derivatives of all compartments at each time step. It will also print the plot of each compartment across time, so we can check everything is behaving as expected. 
 
-
-```r
+```{r message=FALSE, warning=FALSE}
 sim_data = simulate_data_single_var (
   immunity = immunity, # seroprevalence 
   n_inf = n_inf,       # seed 
@@ -93,6 +112,8 @@ sim_data = simulate_data_single_var (
   beta = beta,         # transmission rate
   ts = ts              # time steps 
 )
+
+
 ```
 
 ### Calculating reported incidence and adding noise to the data 
@@ -101,8 +122,7 @@ Next we calculate the reported incidence (i.e., the rate that individuals enter 
 A list is returned which includes a data frame containing the date and the reported incidence (with and without noise). It also a returns a plot of the reported incidence with and without noise. 
 
 
-
-```r
+```{r message=FALSE, warning=FALSE}
 simulated_data = calc_sim_incidence_single_var(
   ODE_data= sim_data,         # ODE solutions
   all_dates = all_dates,      # model dates
@@ -231,7 +251,9 @@ Running this function will fit our Stan model to the simulated data and return t
 First, we are going to fit the model using the Euler method: 
 
 
-```r
+
+```{r}
+
 stan_fit_EU = run_stan_models(
   list_data =
     list(
@@ -246,7 +268,9 @@ stan_fit_EU = run_stan_models(
       time_seed_omicron =       # index seed omicron
         which(all_dates == date_fit_omicron) 
     ), 
-  model = m1_EU 
+  model = m1_EU,
+  n_chains = 1,
+  seed_values = c(1)
 )
 ```
 
@@ -260,15 +284,13 @@ To be on the safe side, lets check with some model diagnostics. *diagnose_stan_f
 
 
 
-
-```r
+```{r message=FALSE, warning=FALSE}
 EU_diag = diagnose_stan_fit(stan_fit_EU, pars = c("beta", "rho", "R_0"))
 
 EU_diag
 ```
 
-
-```r
+```{r debug}
 knitr::knit_exit()
 ```
 
@@ -288,8 +310,7 @@ The function allow us to calculate the mean and 95% CrI, which are the 2.5% and 
 
 We then plot these against our simulated data, over time.
 
-
-```r
+```{r message=FALSE, warning=FALSE, error=T}
 EU_plot = plot_model_fit(stan_fit_EU,
                          variable_model = "lambda",
                          variable_data = "rep_inc_noise",
@@ -311,7 +332,8 @@ The fit here is poor, as the model peaks too late. Next we will compare this to 
 **Looking at *m1_RK*, you can see we need to add some additional data to the list provided to Stan, namely a vector of time steps at which to solve the model.** 
 
 
-```r
+
+```{r eval=F}
 stan_fit_RK = run_stan_models(
   list_data =
     list(
@@ -332,15 +354,13 @@ stan_fit_RK = run_stan_models(
 ```
 
 **Diagnostics still look good.**
-
-```r
+```{r }
 RK_diag = diagnose_stan_fit(stan_fit_RK, pars = c("beta", "rho", "R_0"))
 RK_diag
 ```
 
 **The fit is better than the Euler method, although we are not quite capturing the peak of the epidemic curve.**
-
-```r
+```{r message=FALSE, warning=FALSE, error=T}
 RK_plot = plot_model_fit(stan_fit_RK,
                         variable_model = "lambda",
                         variable_data = "rep_inc_noise",
@@ -360,14 +380,14 @@ RK_plot
 
 **A8: Lets plot our original values, alongside the mean and 95% CrI of the posterior distributions of our estimated parameters, using the function *compare_param_est* **
   
-
-```r
+```{r message=FALSE, warning=FALSE, error=T}
 compare_param_est(
   parameter_names = c("beta", "rho", "R_0"), # parameters to compare 
   true_param_values = c(beta, rho, R0),  # true values
   param_values1 =  EU_diag[[3]][,c(1,4,8)], # estimated values from model 1 
   param_values2 =  RK_diag[[3]][,c(1,4,8)]  # estimated values from model 2
 )
+
 ```
 
 **It looks like the RK method is better able to recover the parameter values, which makes sense as it fits the date better. The RK method does underestimate the true $R_0$, which explains why the model was not quite able to capture the peak of the epidemic curve.** 
@@ -386,8 +406,8 @@ compare_param_est(
 **Once we have solved the model at our desired resolution, we need to aggregate the reported incidence back into days so that we can fit to the data. This is done in the model block using a for loop which adds to the index as it runs**
 
 
+```{r}
 
-```r
 # run the model 
 
 stan_fit_EU2 = run_stan_models(
@@ -407,6 +427,8 @@ stan_fit_EU2 = run_stan_models(
     ), 
   model = m1_EU2 
 )
+
+
 ```
 
 **Reducing the time step by 6 or 7 should be sufficient, and is still faster than the RK method.**
@@ -414,16 +436,14 @@ stan_fit_EU2 = run_stan_models(
 **Let's check the diagnostics now and see if we are able to improve the accuracy. **
 
 **Requires 7GB RAM at peak memory usage** So, using Docker with 8GB RAM/4GB Swap/4 CPUs is ok.
-
-```r
+```{r error=T}
 EU2_diag = diagnose_stan_fit(stan_fit_EU2, pars = c("beta", "rho", "R_0"))
 
 EU2_diag
 ```
 
 
-
-```r
+```{r message=FALSE, warning=FALSE, error=T}
 EU2_plot = plot_model_fit(stan_fit_EU2,
                           variable_model = "lambda_days", 
                           variable_data = "rep_inc_noise",
@@ -435,8 +455,7 @@ EU2_plot
 
 **Finally, lets compare parameter estimates again**
 
-
-```r
+```{r message=FALSE, warning=FALSE, error=T}
 compare_param_est(
   parameter_names = c("beta", "rho", "R0"),
   true_param_values = c(beta, rho, R0),

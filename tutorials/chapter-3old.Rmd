@@ -1,5 +1,5 @@
 ---
-title: "Part 1"
+title: "Part 3"
 output: 
   html_document:
     keep_md: true
@@ -192,8 +192,8 @@ stan_fit_EU3_obs = run_stan_models(
       scale_time_step = 6,                                     # amount to reduce time step,
       nu  = nu
     ), 
-  n_iter = 2000,
-  n_warmup = 1000,
+  n_iter = 200,
+  n_warmup = 100,
   model = m2_EU1,
   n_var = 2,
   model_no = 2

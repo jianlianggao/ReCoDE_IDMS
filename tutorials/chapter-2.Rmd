@@ -1,16 +1,30 @@
 ---
-title: "Chapter 2: fitting a single variant model in Stan"
-output: 
+title: 'Chapter 2: fitting a single variant model in Stan'
+output:
   html_document:
-    keep_md: true
-    toc: true
-    toc_float: true
-    toc_collapse: true
-
+    keep_md: yes
+    toc: yes
+    toc_float: yes
+    toc_collapse: yes
+  pdf_document:
+    toc: yes
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(eval = T)
+knitr::opts_chunk$set(cache = T)
+
+# dotR <- file.path(Sys.getenv("HOME"), ".R")
+# if (!file.exists(dotR)) dir.create(dotR)
+# M <- file.path(dotR, "Makevars")
+# if (!file.exists(M)) file.create(M)
+# cat("\nCXX14FLAGS=-O3 -march=corei7 -mtune=corei7 -fPIC",
+#     "CXX14=g++", # or clang++ but you may need a version postfix
+#     file = M, sep = "\n", append = F)
+# Sys.setenv(DOWNLOAD_STATIC_LIBV8 = 1)
+
+
 ```
 
 In this chapter, we are going to fit the single variant model designed in chapter 1, using Stan. 
@@ -21,8 +35,9 @@ First, we need to load some packages. We also need to source the functions neede
 library(dplyr)
 library(ggplot2)
 library(rstan)
-rstan_options(auto_write = TRUE)           
-options(mc.cores = parallel::detectCores())
+library(bayesplot)
+# rstan_options(auto_write = TRUE)           
+# options(mc.cores = parallel::detectCores())
   
 # Functions
 source("R/simulate_data.R")
@@ -228,6 +243,8 @@ Running this function will fit our Stan model to the simulated data and return t
 
 First, we are going to fit the model using the Euler method: 
 
+
+
 ```{r}
 
 stan_fit_EU = run_stan_models(
@@ -244,9 +261,13 @@ stan_fit_EU = run_stan_models(
       time_seed_omicron =       # index seed omicron
         which(all_dates == date_fit_omicron) 
     ), 
-  model = m1_EU 
+  model = m1_EU,
+  n_chains = 3,
+  seed_values = c(1,2,3)
 )
 ```
+
+
 
 
 ### Model diagnostics 
@@ -261,6 +282,9 @@ EU_diag = diagnose_stan_fit(stan_fit_EU, pars = c("beta", "rho", "R_0"))
 
 EU_diag
 ```
+
+
+
 
 The first output shows the bivariate marginal posterior distribution which will show divergent transitions in red, if there are any. Note also, the strong correlation between parameters. The next outputs show markov chain trace plots to check for model convergence and the univariate marginal posterior distribution by chain. 
 
@@ -277,7 +301,7 @@ The function allow us to calculate the mean and 95% CrI, which are the 2.5% and 
 
 We then plot these against our simulated data, over time.
 
-```{r message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE, error=T}
 EU_plot = plot_model_fit(stan_fit_EU,
                          variable_model = "lambda",
                          variable_data = "rep_inc_noise",
@@ -298,7 +322,9 @@ The fit here is poor, as the model peaks too late. Next we will compare this to 
 
 **Looking at *m1_RK*, you can see we need to add some additional data to the list provided to Stan, namely a vector of time steps at which to solve the model.** 
 
-```{r}
+
+
+```{r eval=T}
 stan_fit_RK = run_stan_models(
   list_data =
     list(
@@ -319,13 +345,13 @@ stan_fit_RK = run_stan_models(
 ```
 
 **Diagnostics still look good.**
-```{r}
+```{r }
 RK_diag = diagnose_stan_fit(stan_fit_RK, pars = c("beta", "rho", "R_0"))
 RK_diag
 ```
 
 **The fit is better than the Euler method, although we are not quite capturing the peak of the epidemic curve.**
-```{r message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE, error=T}
 RK_plot = plot_model_fit(stan_fit_RK,
                         variable_model = "lambda",
                         variable_data = "rep_inc_noise",
@@ -345,7 +371,7 @@ RK_plot
 
 **A8: Lets plot our original values, alongside the mean and 95% CrI of the posterior distributions of our estimated parameters, using the function *compare_param_est* **
   
-```{r message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE, error=T}
 compare_param_est(
   parameter_names = c("beta", "rho", "R_0"), # parameters to compare 
   true_param_values = c(beta, rho, R0),  # true values
@@ -401,14 +427,14 @@ stan_fit_EU2 = run_stan_models(
 **Let's check the diagnostics now and see if we are able to improve the accuracy. **
 
 **Requires 7GB RAM at peak memory usage** So, using Docker with 8GB RAM/4GB Swap/4 CPUs is ok.
-```{r}
+```{r error=T}
 EU2_diag = diagnose_stan_fit(stan_fit_EU2, pars = c("beta", "rho", "R_0"))
 
 EU2_diag
 ```
 
 
-```{r message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE, error=T}
 EU2_plot = plot_model_fit(stan_fit_EU2,
                           variable_model = "lambda_days", 
                           variable_data = "rep_inc_noise",
@@ -420,7 +446,7 @@ EU2_plot
 
 **Finally, lets compare parameter estimates again**
 
-```{r message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE, error=T}
 compare_param_est(
   parameter_names = c("beta", "rho", "R0"),
   true_param_values = c(beta, rho, R0),
